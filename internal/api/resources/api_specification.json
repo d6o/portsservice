@@ -1,0 +1,101 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Ports Service API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "paths": {
+    "/port/{portKey}": {
+      "get": {
+        "summary": "Get port information by portKey",
+        "parameters": [
+          {
+            "name": "portKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Port found in the storage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Port"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "Port not found in the storage"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Port": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "alias": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "regions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "province": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "unlocs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
