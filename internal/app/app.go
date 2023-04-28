@@ -87,7 +87,9 @@ func (App) Run(ctx context.Context) error {
 
 	responder := api.NewResponder()
 	getPortHandler := api.NewGetPort(db, responder)
+	getDocsHandler := api.NewGetDocs()
 	httpRouter := chi.NewRouter()
+	httpRouter.Get("/docs", getDocsHandler.ServeHTTP)
 	httpRouter.Get("/port/{portKey}", getPortHandler.ServeHTTP)
 
 	httpServer := &http.Server{
