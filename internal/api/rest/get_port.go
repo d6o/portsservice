@@ -1,7 +1,9 @@
-package api
+package rest
 
 import (
 	"context"
+	"errors"
+	"github.com/d6o/portsservice/internal/usecases"
 	"net/http"
 
 	"github.com/d6o/portsservice/internal/domain/model"
@@ -13,8 +15,8 @@ import (
 
 type (
 	GetPort struct {
-		portRetriever model.Retriever
-		responder     responder
+		portFinder portFinder
+		responder  responder
 	}
 
 	responder interface {
@@ -23,10 +25,14 @@ type (
 		WriteNotFound(ctx context.Context, w http.ResponseWriter)
 		WriteOK(ctx context.Context, w http.ResponseWriter, result any)
 	}
+
+	portFinder interface {
+		FindPort(ctx context.Context, portKey string) (*model.Port, error)
+	}
 )
 
-func NewGetPort(portRetriever model.Retriever, responder responder) *GetPort {
-	return &GetPort{portRetriever: portRetriever, responder: responder}
+func NewGetPort(portFinder portFinder, responder responder) *GetPort {
+	return &GetPort{portFinder: portFinder, responder: responder}
 }
 
 func (gp GetPort) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -39,14 +45,13 @@ func (gp GetPort) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	port, exist, err := gp.portRetriever.Get(r.Context(), portKey)
-	if err != nil {
-		gp.responder.WriteInternalServerError(r.Context(), w, "can't retrieve port")
+	port, err := gp.portFinder.FindPort(r.Context(), portKey)
+	if errors.Is(err, usecases.ErrPortDoesNotExist) {
+		gp.responder.WriteNotFound(r.Context(), w)
 		return
 	}
-
-	if !exist {
-		gp.responder.WriteNotFound(r.Context(), w)
+	if err != nil {
+		gp.responder.WriteInternalServerError(r.Context(), w, "can't retrieve port")
 		return
 	}
 

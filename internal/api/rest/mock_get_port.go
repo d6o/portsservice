@@ -2,7 +2,7 @@
 // Source: get_port.go
 
 // Package api is a generated GoMock package.
-package api
+package rest
 
 import (
 	context "context"

@@ -1,5 +1,5 @@
 // Package api is the package to hold all presentation layer in the HTTP API. Is the entrypoint for requests.
-package api
+package rest
 
 import (
 	"context"

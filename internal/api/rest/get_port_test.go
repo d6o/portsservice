@@ -1,15 +1,15 @@
-package api_test
+package rest_test
 
 import (
 	"bytes"
 	"context"
 	"errors"
+	"github.com/d6o/portsservice/internal/api/rest"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/d6o/portsservice/internal/api"
 	"github.com/d6o/portsservice/internal/domain/model"
 	"github.com/golang/mock/gomock"
 )
@@ -19,7 +19,7 @@ func TestGetPort_ServeHTTP(t *testing.T) {
 	defer ctrl.Finish()
 
 	portRetriever := model.NewMockRetriever(ctrl)
-	responder := api.NewMockresponder(ctrl)
+	responder := rest.NewMockresponder(ctrl)
 
 	w := httptest.NewRecorder()
 
@@ -29,7 +29,7 @@ func TestGetPort_ServeHTTP(t *testing.T) {
 
 	responder.EXPECT().WriteOK(gomock.Any(), w, port)
 
-	getPort := api.NewGetPort(portRetriever, responder)
+	getPort := rest.NewGetPort(portRetriever, responder)
 
 	portRetriever.EXPECT().Get(gomock.Any(), "1").Return(port, true, nil)
 
@@ -48,13 +48,13 @@ func TestGetPort_ServeHTTP_NotFound(t *testing.T) {
 	defer ctrl.Finish()
 
 	portRetriever := model.NewMockRetriever(ctrl)
-	responder := api.NewMockresponder(ctrl)
+	responder := rest.NewMockresponder(ctrl)
 
 	w := httptest.NewRecorder()
 
 	responder.EXPECT().WriteNotFound(gomock.Any(), w)
 
-	getPort := api.NewGetPort(portRetriever, responder)
+	getPort := rest.NewGetPort(portRetriever, responder)
 
 	portRetriever.EXPECT().Get(gomock.Any(), "not_found").Return(nil, false, nil)
 
@@ -73,10 +73,10 @@ func TestGetPort_ServeHTTP_Error(t *testing.T) {
 	defer ctrl.Finish()
 
 	portRetriever := model.NewMockRetriever(ctrl)
-	responder := api.NewMockresponder(ctrl)
+	responder := rest.NewMockresponder(ctrl)
 	w := httptest.NewRecorder()
 
-	getPort := api.NewGetPort(portRetriever, responder)
+	getPort := rest.NewGetPort(portRetriever, responder)
 
 	portRetriever.EXPECT().Get(gomock.Any(), "1").Return(nil, false, errors.New("test error"))
 	responder.EXPECT().WriteInternalServerError(gomock.Any(), w, "can't retrieve port")
