@@ -8,6 +8,7 @@ type (
 	Specification struct {
 		StorageProvider string `default:"memory" split_words:"true"`
 		APIPort         int    `default:"8080" split_words:"true"`
+		GRPCPort        int    `default:"3000" split_words:"true"`
 		RedisAddress    string `split_words:"true"`
 	}
 )
