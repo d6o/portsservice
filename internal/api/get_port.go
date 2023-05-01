@@ -23,7 +23,35 @@ type (
 		WriteNotFound(ctx context.Context, w http.ResponseWriter)
 		WriteOK(ctx context.Context, w http.ResponseWriter, result any)
 	}
+
+	GetPortResponse struct {
+		Name        string    `json:"name"`
+		City        string    `json:"city"`
+		Country     string    `json:"country"`
+		Alias       []string  `json:"alias"`
+		Regions     []string  `json:"regions"`
+		Coordinates []float64 `json:"coordinates"`
+		Province    string    `json:"province"`
+		Timezone    string    `json:"timezone"`
+		Unlocs      []string  `json:"unlocs"`
+		Code        string    `json:"code"`
+	}
 )
+
+func NewGetPortResponse(port *model.Port) *GetPortResponse {
+	return &GetPortResponse{
+		Name:        port.Name,
+		City:        port.City,
+		Country:     port.Country,
+		Alias:       port.Alias,
+		Regions:     port.Regions,
+		Coordinates: port.Coordinates,
+		Province:    port.Province,
+		Timezone:    port.Timezone,
+		Unlocs:      port.Unlocs,
+		Code:        port.Code,
+	}
+}
 
 func NewGetPort(portRetriever model.Retriever, responder responder) *GetPort {
 	return &GetPort{portRetriever: portRetriever, responder: responder}
@@ -50,7 +78,9 @@ func (gp GetPort) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gp.responder.WriteOK(r.Context(), w, port)
+	dto := NewGetPortResponse(port)
+
+	gp.responder.WriteOK(r.Context(), w, dto)
 
 	logger.Info("Request handled")
 }
