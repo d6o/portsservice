@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	grpc2 "github.com/d6o/portsservice/internal/api/grpc"
+	"github.com/d6o/portsservice/internal/api/rest"
+	"github.com/d6o/portsservice/internal/usecases"
+	"google.golang.org/grpc"
 	"net"
 	"net/http"
 	"os"
 
-	"github.com/d6o/portsservice/internal/api"
 	"github.com/d6o/portsservice/internal/config"
 	domainService "github.com/d6o/portsservice/internal/domain/service"
 	"github.com/d6o/portsservice/internal/infrastructure/appcontext"
@@ -85,8 +88,10 @@ func (App) Run(ctx context.Context) error {
 
 	logger.With(zap.Int("port", cfg.APIPort)).Info("Starting HTTP Server")
 
-	responder := api.NewResponder()
-	getPortHandler := api.NewGetPort(db, responder)
+	findPortUseCase := usecases.NewFindPort(db)
+
+	responder := rest.NewResponder()
+	getPortHandler := rest.NewGetPort(findPortUseCase, responder)
 	httpRouter := chi.NewRouter()
 	httpRouter.Get("/port/{portKey}", getPortHandler.ServeHTTP)
 
@@ -105,6 +110,27 @@ func (App) Run(ctx context.Context) error {
 			serverErr <- err
 		}
 	}()
+
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPCPort))
+	if err != nil {
+		return err
+	}
+
+	grpcGetPortHandler := grpc2.NewGetPort(findPortUseCase)
+
+	s := grpc.NewServer()
+	grpc2.RegisterPortServiceServer(s, grpcGetPortHandler)
+
+	go func() {
+		if err := s.Serve(lis); err != nil {
+			serverErr <- err
+		}
+	}()
+
+	shutdownListenerService.AddClosable(func(ctx context.Context) error {
+		s.GracefulStop()
+		return lis.Close()
+	})
 
 	select {
 	case <-shutdownListenerService.Done():
