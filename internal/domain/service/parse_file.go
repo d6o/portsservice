@@ -23,7 +23,35 @@ type (
 	contextChecker interface {
 		CheckContext(ctx context.Context) error
 	}
+
+	portDTO struct {
+		Name        string    `json:"name"`
+		City        string    `json:"city"`
+		Country     string    `json:"country"`
+		Alias       []string  `json:"alias"`
+		Regions     []string  `json:"regions"`
+		Coordinates []float64 `json:"coordinates"`
+		Province    string    `json:"province"`
+		Timezone    string    `json:"timezone"`
+		Unlocs      []string  `json:"unlocs"`
+		Code        string    `json:"code"`
+	}
 )
+
+func (p portDTO) ToModel() *model.Port {
+	return &model.Port{
+		Name:        p.Name,
+		City:        p.City,
+		Country:     p.Country,
+		Alias:       p.Alias,
+		Regions:     p.Regions,
+		Coordinates: p.Coordinates,
+		Province:    p.Province,
+		Timezone:    p.Timezone,
+		Unlocs:      p.Unlocs,
+		Code:        p.Code,
+	}
+}
 
 func NewParsePorts(storage model.Saver, contextChecker contextChecker) *ParsePorts {
 	return &ParsePorts{storage: storage, contextChecker: contextChecker}
@@ -65,7 +93,7 @@ func (pp ParsePorts) Parse(ctx context.Context, filename string) error {
 		}
 
 		// Decode the value into a Port struct
-		var port model.Port
+		var port portDTO
 		err = decoder.Decode(&port)
 		if err != nil {
 			return err
@@ -76,7 +104,7 @@ func (pp ParsePorts) Parse(ctx context.Context, filename string) error {
 			return errors.New("key is not valid")
 		}
 
-		if err := pp.storage.Save(ctx, keyValue, &port); err != nil {
+		if err := pp.storage.Save(ctx, keyValue, port.ToModel()); err != nil {
 			return err
 		}
 
