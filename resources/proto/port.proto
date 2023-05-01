@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package port;
+
+option go_package = "./internal/api/grpc";
+
+service PortService {
+  rpc GetPort(GetPortRequest) returns (GetPortResponse);
+}
+
+message GetPortRequest {
+  string port_key = 1;
+}
+
+message GetPortResponse {
+  string name = 1;
+  string city = 2;
+  string country = 3;
+  repeated string alias = 4;
+  repeated string regions = 5;
+  double lat = 6;
+  double lon = 7;
+  string province = 8;
+  string timezone = 9;
+  repeated string unlocs = 10;
+  string code = 11;
+}
